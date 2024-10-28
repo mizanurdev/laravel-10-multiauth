@@ -27,9 +27,10 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
+            'inputType' => 'required|string',  // The combined username/email field
+            'password' => 'required|string',
         ];
+        
     }
 
     /**
@@ -41,13 +42,14 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
+        // Determine if input is email or username
+        $loginType = filter_var($this->inputType, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
-            throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
-            ]);
-        }
+        if (!Auth::attempt([$loginType => $this->inputType, 'password' => $this->password], $this->boolean('remember'))) {
+        throw ValidationException::withMessages([
+            'inputType' => __('auth.failed'),
+        ]);
+    }
 
         RateLimiter::clear($this->throttleKey());
     }
