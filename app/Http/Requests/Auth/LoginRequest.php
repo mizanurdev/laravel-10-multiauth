@@ -46,10 +46,10 @@ class LoginRequest extends FormRequest
         $loginType = filter_var($this->inputType, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
         if (!Auth::attempt([$loginType => $this->inputType, 'password' => $this->password], $this->boolean('remember'))) {
-        throw ValidationException::withMessages([
-            'inputType' => __('auth.failed'),
-        ]);
-    }
+            throw ValidationException::withMessages([
+                'inputType' => __('auth.failed'),
+            ]);
+        }
 
         RateLimiter::clear($this->throttleKey());
     }
